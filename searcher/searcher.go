@@ -1,8 +1,6 @@
 package searcher
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -261,18 +259,6 @@ func reportOnMemory() {
 	fmt.Printf("HeapIdle  = %0.2f\n", float64(ms.HeapIdle)/1e6)
 }
 
-// Utility function for producing a hex encoded sha1 hash for a string.
-func hashFor(name string) string {
-	h := sha1.New()
-	h.Write([]byte(name))  //nolint
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-// Create a normalized name for the vcs directory of this repo.
-func vcsDirFor(repo *config.Repo) string {
-	return fmt.Sprintf("vcs-%s", hashFor(repo.Url))
-}
-
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
@@ -398,7 +384,7 @@ func newSearcher(
 	refs *foundRefs,
 	lim limiter) (*Searcher, error) {
 
-	vcsDir := filepath.Join(dbpath, vcsDirFor(repo))
+	vcsDir := filepath.Join(dbpath, index.VcsDirFor(repo.Url))
 
 	log.Printf("Searcher started for %s", name)
 
@@ -406,7 +392,6 @@ func newSearcher(
 	if err != nil {
 		return nil, err
 	}
-
 
 	rev, err := wd.PullOrClone(vcsDir, repo.Url)
 	if err != nil {
