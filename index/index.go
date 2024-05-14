@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -122,6 +123,7 @@ func (r *IndexRef) Open() (*Index, error) {
 }
 
 func (r *IndexRef) Remove() error {
+	log.Printf("Removed %s\n     and %s", r.dir, r.VcsDir)
 	if err := os.RemoveAll(r.dir); err != nil {
 		return err
 	}
