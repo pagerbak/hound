@@ -215,7 +215,10 @@ func findExistingRefs(dbpath string) (*foundRefs, error) {
 
 	var refs []*index.IndexRef
 	for _, dir := range dirs {
-		r, _ := index.Read(dir)
+		r, err := index.Read(dir)
+		if err != nil {
+			return nil, err
+		}
 		refs = append(refs, r)
 	}
 
@@ -279,13 +282,24 @@ func MakeAll(cfg *config.Config) (map[string]*Searcher, map[string]error, error)
 
 	lim := makeLimiter(cfg.MaxConcurrentIndexers)
 
-	n := len(cfg.Repos)
+	n := 0
+	for name := range cfg.Repos {
+		if s, ok := searchers[name]; ok {
+			// claim any already running searcher refs so that they don't get removed
+			refs.claim(s.idx.Ref)
+			continue
+		}
+		n++
+	}
 	// Channel to receive the results from newSearcherConcurrent function.
 	resultCh := make(chan searcherResult, n)
 
 	// Start new searchers for all repos in different go routines while
 	// respecting cfg.MaxConcurrentIndexers.
 	for name, repo := range cfg.Repos {
+		if _, ok := searchers[name]; ok {
+			continue
+		}
 		go newSearcherConcurrent(cfg.DbPath, name, repo, refs, lim, resultCh)
 	}
 
@@ -392,6 +406,7 @@ func newSearcher(
 	if err != nil {
 		return nil, err
 	}
+
 
 	rev, err := wd.PullOrClone(vcsDir, repo.Url)
 	if err != nil {
