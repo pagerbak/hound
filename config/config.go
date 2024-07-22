@@ -95,6 +95,10 @@ func (r *Repo) VcsConfig() []byte {
 	return *r.VcsConfigMessage
 }
 
+func ClearRepos(c *Config) {
+	c.Repos = make(map[string]*Repo)
+}
+
 // Populate missing config values with default values.
 func initRepo(r *Repo) {
 	if r.MsBetweenPolls == 0 {

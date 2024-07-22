@@ -35,7 +35,7 @@ func makeSearchers(cfg *config.Config, searchers map[string]*searcher.Searcher) 
 		}
 	}
 
-	searchers, errs, err := searcher.MakeAll(cfg)
+	errs, err := searcher.MakeAll(cfg, searchers)
 	if err != nil {
 		return false, err
 	}
@@ -105,6 +105,7 @@ func main() {
 	var cfg config.Config
 
 	loadConfig := func() {
+		config.ClearRepos(&cfg)
 		if err := cfg.LoadFromFile(*flagConf); err != nil {
 			panic(err)
 		}

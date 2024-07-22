@@ -123,11 +123,17 @@ func (r *IndexRef) Open() (*Index, error) {
 }
 
 func (r *IndexRef) Remove() error {
-	log.Printf("Removed %s\n     and %s", r.IdxDir, r.VcsDir)
-	if err := os.RemoveAll(r.IdxDir); err != nil {
+	log.Printf("Removed %s, %s", filepath.Base(r.IdxDir), filepath.Base(r.VcsDir))
+	var err = os.RemoveAll(r.IdxDir)
+	if err != nil {
+		log.Fatal(err)
 		return err
 	}
-	return os.RemoveAll(r.VcsDir)
+	err = os.RemoveAll(r.VcsDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
 }
 
 func (n *Index) Close() error {
